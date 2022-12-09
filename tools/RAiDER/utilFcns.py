@@ -267,6 +267,7 @@ def writeArrayToRaster(array, filename, noDataValue=0., fmt='ENVI', proj=None, g
                        dtype=dtype, crs=proj, nodata=noDataValue,
                        driver=fmt, transform=trans) as dst:
         dst.write(array, 1)
+    return dst
 
 
 def writeArrayToFile(lats, lons, array, filename, noDataValue=-9999):
@@ -453,9 +454,10 @@ def writeDelays(aoi, wetDelay, hydroDelay,
         df['hydroDelay'] = hydroDelay
         df['totalDelay'] = wetDelay + hydroDelay
         df.to_csv(wetFilename, index=False)
+        logger.info ('Wrote delays to: %s', wetFilename)
 
     else:
-        writeArrayToRaster(
+        wetDst = writeArrayToRaster(
             wetDelay,
             wetFilename,
             noDataValue=ndv,
@@ -463,7 +465,7 @@ def writeDelays(aoi, wetDelay, hydroDelay,
             proj=proj,
             gt=gt
         )
-        writeArrayToRaster(
+        hydroDst = writeArrayToRaster(
             hydroDelay,
             hydroFilename,
             noDataValue=ndv,
@@ -471,6 +473,8 @@ def writeDelays(aoi, wetDelay, hydroDelay,
             proj=proj,
             gt=gt
         )
+        logger.info('Wrote wet delays to: %s', wetDst)
+        logger.info('Wrote hydro delays to: %s', hydroDst)
 
 
 def getTimeFromFile(filename):
