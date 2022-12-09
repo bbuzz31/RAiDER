@@ -10,6 +10,7 @@ import os
 import datetime
 import h5py
 import numpy as np
+import pyproj
 import xarray
 
 from netCDF4 import Dataset
@@ -33,7 +34,7 @@ from RAiDER.utilFcns import (
 ###############################################################################
 def tropo_delay(dt, weather_model_file, aoi, los, height_levels=None, out_proj=4326, look_dir='right', cube_spacing_m=None):
     """
-    raider main function for calculating delays.
+    Calculate integrated delays on query points.
 
     Parameterss
     ----------
@@ -48,7 +49,8 @@ def tropo_delay(dt, weather_model_file, aoi, los, height_levels=None, out_proj=4
 
     Returns
     -------
-    xarray Dataset
+    xarray Dataset or wet and hydrostatic delays at the query points. The dataset will contain fields
+    'wet' and 'hydro' which are the total (integrated) wet and hydrostatic delays
     """
     # get heights
     if height_levels is None:
@@ -58,22 +60,22 @@ def tropo_delay(dt, weather_model_file, aoi, los, height_levels=None, out_proj=4
     #TODO: expose this as library function
     ds = tropo_delay_cube(dt, weather_model_file, aoi.bounds(), height_levels,
         los, out_proj=out_proj, cube_spacing_m=cube_spacing_m, look_dir=look_dir)
+    ds = ds.rename({'x': 'y', 'y': 'x'})
 
     if (aoi.type() == 'bounding_box') or (aoi.type() == 'Geocube'):
         return ds, None
 
     else:
-        with xarray.load_dataset(weather_model_file) as ds2:
-            try:
-                wm_proj = CRS.from_wkt(ds2.CRS.attrs['crs_wkt'])
-            except:
-                wm_proj = CRS.from_wkt(ds2.WGS84.attrs['crs_wkt'])
+        try:
+            out_proj = CRS.from_epsg(out_proj)
+        except pyproj.exceptions.CRSError:
+            out_proj = out_proj
 
         pnt_proj = CRS.from_epsg(4326)
-        lats, lons = aoi.readLL()
+        lons, lats = aoi.readLL()
         hgts = aoi.readZ()
-        pnts = transformPoints(lats, lons, hgts, pnt_proj, wm_proj).T
-        ifWet, ifHydro = getInterpolators(ds, 'ztd') # the cube from tropo_delay_cube calls the total delays 'wet' and 'hydro
+        pnts = transformPoints(lats, lons, hgts, pnt_proj, out_proj).T
+        ifWet, ifHydro = getInterpolators(ds, 'ztd') # the cube from tropo_delay_cube calls the total delays 'wet' and 'hydro'
         wetDelay = ifWet(pnts)
         hydroDelay = ifHydro(pnts)
 
