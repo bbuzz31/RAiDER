@@ -41,7 +41,7 @@ def tropo_delay(dt, weather_model_file, aoi, los, height_levels=None, out_proj=4
     weather_model_File: string  - Name of the NETCDF file containing a pre-processed weather model
     aoi: AOI object             - AOI object
     los: LOS object             - LOS object
-    height_levels: list         - (optional) list of height levels on which to calculate delays. Only needed for cube generation. 
+    height_levels: list         - (optional) list of height levels on which to calculate delays. Only needed for cube generation.
     out_proj: int,str           - (optional) EPSG code for output projection
     look_dir: str               - (optional) Satellite look direction. Only needed for slant delay calculation
     cube_spacing_m: int         - (optional) Horizontal spacing in meters when generating cubes
@@ -56,14 +56,19 @@ def tropo_delay(dt, weather_model_file, aoi, los, height_levels=None, out_proj=4
             height_levels = ds.z.values
 
     #TODO: expose this as library function
-    ds = tropo_delay_cube(dt, weather_model_file, aoi.bounds(), height_levels, los, out_proj = out_proj, cube_spacing_m = cube_spacing_m, look_dir = look_dir)
+    ds = tropo_delay_cube(dt, weather_model_file, aoi.bounds(), height_levels,
+        los, out_proj=out_proj, cube_spacing_m=cube_spacing_m, look_dir=look_dir)
 
     if (aoi.type() == 'bounding_box') or (aoi.type() == 'Geocube'):
         return ds, None
 
     else:
         with xarray.load_dataset(weather_model_file) as ds2:
-            wm_proj = CRS.from_wkt(ds2.CRS.attrs['crs_wkt'])
+            try:
+                wm_proj = CRS.from_wkt(ds2.CRS.attrs['crs_wkt'])
+            except:
+                wm_proj = CRS.from_wkt(ds2.WGS84.attrs['crs_wkt'])
+
         pnt_proj = CRS.from_epsg(4326)
         lats, lons = aoi.readLL()
         hgts = aoi.readZ()
@@ -79,7 +84,6 @@ def tropo_delay(dt, weather_model_file, aoi, los, height_levels=None, out_proj=4
             hydroDelay = los(hydroDelay)
 
     return wetDelay, hydroDelay
-
 
 
 def tropo_delay_cube(dt, weather_model_file, ll_bounds, heights, los, out_proj=4326, cube_spacing_m=None, look_dir='right', nproc=1):
@@ -544,5 +548,3 @@ def build_cube_ray(
 
     if output_created_here:
         return outputArrs
-
-
