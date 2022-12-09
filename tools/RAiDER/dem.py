@@ -39,7 +39,7 @@ def getHeights(ll_bounds, dem_type, dem_file, lats=None, lons=None):
         # heights will be vertically interpolated to the heightlvs
         hts = None
 
-    elif (dem_type == 'download') or (dem_type == 'dem'):
+    elif (dem_typ == 'download') or (dem_type == 'dem'):
         if ~os.path.exists(dem_file):
             download_dem(
                 ll_bounds,

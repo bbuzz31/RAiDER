@@ -15,6 +15,7 @@ from time import strptime
 from RAiDER.llreader import BoundingBox, Geocube, RasterRDR, StationFile, GeocodedFile, Geocube
 from RAiDER.losreader import Zenith, Conventional, Raytracing
 from RAiDER.utilFcns import rio_extents, rio_profile
+from RAiDER.logger import logger
 
 _BUFFER_SIZE = 0.2 # default buffer size in lat/lon degrees
 
@@ -115,7 +116,7 @@ def get_query_region(args):
     '''
     # Get bounds from the inputs
     # make sure this is first
-    if ('use_dem_latlon' in args.keys()) and args['use_dem_latlon']:
+    if args.get('use_dem_latlon'):
         query = GeocodedFile(args.dem, is_dem=True)
 
     elif 'lat_file' in args.keys():
@@ -132,7 +133,14 @@ def get_query_region(args):
         query = BoundingBox(bbox)
 
     elif 'geocoded_file' in args.keys():
-        query = GeocodedFile(args.geocoded_file, is_dem=False)
+        gfile  = os.path.basename(args.geocoded_file)
+        if (gfile.startswith('SRTM') or gfile.startswith('glo30')):
+            logger.debug('Using user DEM: %s', gfile)
+            is_dem = True
+        else:
+            is_dem = False
+
+        query  = GeocodedFile(args.geocoded_file, is_dem=is_dem)
 
     ## untested
     elif 'los_cube' in args.keys():

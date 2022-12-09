@@ -107,7 +107,7 @@ def tropo_delay_cube(dt, weather_model_file, ll_bounds, heights, los, out_proj=4
     if (cube_spacing_m is None) and (crs == CRS(4326)):
 
         use_weather_model_cube = True
-    
+
     else:
         #TODO handle this better
         if cube_spacing_m is None:

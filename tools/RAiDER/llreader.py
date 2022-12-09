@@ -25,7 +25,7 @@ class AOI(object):
     def __init__(self):
         self._bounding_box = None
         self._proj = CRS.from_epsg(4326)
-    
+
     def type(self):
         return self._type
 
@@ -124,6 +124,7 @@ class BoundingBox(AOI):
         AOI.__init__(self)
         self._bounding_box = bbox
         self._type = 'bounding_box'
+
 
 class GeocodedFile(AOI):
     '''Parse a Geocoded file for coordinates'''
