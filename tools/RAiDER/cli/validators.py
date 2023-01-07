@@ -61,11 +61,9 @@ def get_heights(args, out, station_file, bounding_box=None):
     '''
     Parse the Height info and download a DEM if needed
     '''
-    dem_path = os.path.join(out, 'geom')
-    if not os.path.exists(dem_path):
-        os.mkdir(dem_path)
+    dem_path = out
     out = {
-            'dem': None,
+            'dem': args.get('dem'),
             'height_file_rdr': None,
             'height_levels': None,
         }
@@ -73,7 +71,8 @@ def get_heights(args, out, station_file, bounding_box=None):
     if args.get('dem'):
         if (station_file is not None):
             if 'Hgt_m' not in pd.read_csv(station_file):
-                out['dem'] = os.path.join(dem_path, 'GLO30.dem')
+                out['dem'] = os.path.join(out, 'GLO30.dem')
+
         elif os.path.exists(args.dem):
             out['dem'] = args['dem']
             if bounding_box is not None:

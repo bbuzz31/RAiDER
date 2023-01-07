@@ -74,7 +74,11 @@ def tropo_delay(
     ds = _get_delays_on_cube(dt, weather_model_file, aoi.bounds(), height_levels,
             los, out_proj=out_proj, cube_spacing_m=cube_spacing_m, look_dir=look_dir)
 
-    if (aoi.type() == 'bounding_box') or (aoi.type() == 'Geocube'):
+    aoi._lats = ds['y'].data
+    aoi._lons = ds['x'].data
+
+    if False == True:
+    # if (aoi.type() == 'bounding_box') or (aoi.type() == 'Geocube'):
         return ds, None
 
     else:
@@ -88,15 +92,17 @@ def tropo_delay(
         lats, lons = aoi.readLL()
         hgts = aoi.readZ()
         pnts = transformPoints(lats, lons, hgts, pnt_proj, out_proj)
+
         if pnts.ndim == 3:
-            pnts = pnts.transpose(1,2,0)
+            pnts = pnts.transpose(2,1,0)
         elif pnts.ndim == 2:
             pnts = pnts.T
-        ifWet, ifHydro = getInterpolators(ds, 'ztd') # the cube from get_delays_on_cube calls the total delays 'wet' and 'hydro'
-        wetDelay = ifWet(pnts)
+
+        ifWet, ifHydro = getInterpolators(ds) # the cube from get_delays_on_cube calls the total delays 'wet' and 'hydro'
+        wetDelay   = ifWet(pnts)
         hydroDelay = ifHydro(pnts)
 
-        # return the delays (ZTD or STD)
+        # convert zenith to slant
         if los.is_Projected():
             los.setTime(dt)
             los.setPoints(lats, lons, hgts)
@@ -148,8 +154,8 @@ def _get_delays_on_cube(dt, weather_model_file, ll_bounds, heights, los, out_pro
 
     # Build the output grid
     zpts = np.array(heights)
-    xpts = np.arange(out_snwe[2], out_snwe[3] + out_spacing, out_spacing)
-    ypts = np.arange(out_snwe[1], out_snwe[0] - out_spacing, -out_spacing)
+    xpts = np.arange(out_snwe[2], out_snwe[3]+out_spacing, out_spacing)
+    ypts = np.arange(out_snwe[0], out_snwe[1]+out_spacing, out_spacing)
 
 
     # If no orbit is provided

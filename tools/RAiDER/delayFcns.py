@@ -88,7 +88,7 @@ def get_delays(
 def getInterpolators(wm_file, kind='pointwise', shared=False):
     '''
     Read 3D gridded data from a processed weather model file and wrap it with
-    an interpolator
+    the scipy RegularGridInterpolator
     '''
     # Get the weather model data
     try:
@@ -99,7 +99,7 @@ def getInterpolators(wm_file, kind='pointwise', shared=False):
     xs_wm = np.array(ds.variables['x'][:])
     ys_wm = np.array(ds.variables['y'][:])
     zs_wm = np.array(ds.variables['z'][:])
-    wet = ds.variables['wet_total' if kind=='total' else 'wet'][:]
+    wet   = ds.variables['wet_total' if kind=='total' else 'wet'][:]
     hydro = ds.variables['hydro_total' if kind=='total' else 'hydro'][:]
 
     wet = np.array(wet).transpose(1, 2, 0)
@@ -114,8 +114,8 @@ def getInterpolators(wm_file, kind='pointwise', shared=False):
         wet = make_shared_raw(wet)
         hydro = make_shared_raw(hydro)
 
-    ifWet = Interpolator((ys_wm, xs_wm, zs_wm), wet, fill_value=np.nan, bounds_error = False)
-    ifHydro = Interpolator((ys_wm, xs_wm, zs_wm), hydro, fill_value=np.nan, bounds_error = False)
+    ifWet = Interpolator((ys_wm, xs_wm, zs_wm), wet, fill_value=np.nan, bounds_error=False)
+    ifHydro = Interpolator((ys_wm, xs_wm, zs_wm), hydro, fill_value=np.nan, bounds_error=False)
 
     return ifWet, ifHydro
 

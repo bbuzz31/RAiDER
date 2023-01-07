@@ -42,7 +42,7 @@ def getHeights(ll_bounds, dem_type, dem_file, lats=None, lons=None):
     elif (dem_type == 'download') or (dem_type == 'dem'):
         if ~os.path.exists(dem_file):
             download_dem(ll_bounds, writeDEM=True, outName=dem_file)
-            
+
         #TODO: interpolate heights to query lats/lons
         # Interpolate to the query points
         hts = interpolateDEM(
@@ -69,6 +69,7 @@ def download_dem(
     else:
         # inExtent is SNWE
         # dem-stitcher wants WSEN
+        logger.info('Download new DEM: %s', outName)
         bounds = [
             np.floor(ll_bounds[2]) - buf, np.floor(ll_bounds[0]) - buf,
             np.ceil(ll_bounds[3]) + buf, np.ceil(ll_bounds[1]) + buf

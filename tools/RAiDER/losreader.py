@@ -89,11 +89,6 @@ class Zenith(LOS):
             self._look_vecs = getZenithLookVecs(self._lats, self._lons, self._heights)
 
 
-    def __call__(self, delays):
-        '''Placeholder method for consistency with the other classes'''
-        return delays
-
-
 class Conventional(LOS):
     """
     Special value indicating that the zenith delay will

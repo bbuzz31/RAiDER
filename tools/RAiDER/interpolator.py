@@ -114,11 +114,13 @@ def interpolateDEM(demRaster, extent, outLL, method='linear'):
     nPixLon = demRaster.shape[1]
     xlats = np.linspace(minlat, maxlat, nPixLat)
     xlons = np.linspace(minlon, maxlon, nPixLon)
+    # sorting doesnt matter
     interpolator = rgi(
         points=(xlats, xlons),
         values=demRaster,
         method=method,
         bounds_error=False
     )
-    outInterp = interpolator(outLL)
+
+    outInterp= interpolator(outLL)
     return outInterp

@@ -97,7 +97,7 @@ class RasterRDR(AOI):
         self._type = 'radar_rasters'
         self._latfile = lat_file
         self._lonfile = lon_file
-        
+
         if (self._latfile is None) and (self._lonfile is None):
             raise ValueError('You need to specify a 2-band file or two single-band files')
 
@@ -146,6 +146,33 @@ class BoundingBox(AOI):
         AOI.__init__(self)
         self._bounding_box = bbox
         self._type = 'bounding_box'
+        self._lats = None
+        self._lons = None
+        self._hgtfile = None
+        self._demfile = None
+
+
+    def readLL(self):
+        ## have to be set previously
+        lons, lats = np.meshgrid(self._lons, self._lats)
+        return lats, lons
+
+
+    def readZ(self):
+        if self._hgtfile is not None and os.path.exists(self._hgtfile):
+            logger.info('Using existing heights at: %s', self._hgtfile)
+            return rio_open(self._hgtfile)
+
+        else:
+            demFile = 'GLO30_fullres_dem.tif' if self._demfile is None else self._demfile
+            zvals, metadata = download_dem(
+                self._bounding_box,
+                writeDEM=True,
+                outName=os.path.join(demFile),
+            )
+            z_bounds   = get_bbox(metadata)
+            z_out    = interpolateDEM(zvals, z_bounds, self.readLL(), method='nearest')
+            return z_out
 
 
 class GeocodedFile(AOI):
